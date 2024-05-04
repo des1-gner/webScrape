@@ -20,19 +20,18 @@ def process_xml(file_path, output_file):
     for item in root.findall('./channel/item'):
         # Extract the desired tags
         title = item.find('title').text if item.find('title') is not None else ""
-        post_id = item.find('ns0:post_id', {'ns0': 'http://wordpress.org/export/1.2/'}).text if item.find('ns0:post_id', {'ns0': 'http://wordpress.org/export/1.2/'}) is not None else ""
-        link = item.find('link').text if item.find('link') is not None else ""
-        pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ""
-        post_modified = item.find('ns0:post_modified', {'ns0': 'http://wordpress.org/export/1.2/'}).text if item.find('ns0:post_modified', {'ns0': 'http://wordpress.org/export/1.2/'}) is not None else ""
-        encoded = item.find('ns2:encoded', {'ns2': 'http://purl.org/rss/1.0/modules/content/'}).text if item.find('ns2:encoded', {'ns2': 'http://purl.org/rss/1.0/modules/content/'}) is not None else ""
-        encoded_excerpt = item.find('ns3:encoded', {'ns3': 'http://wordpress.org/export/1.2/excerpt/'}).text if item.find('ns3:encoded', {'ns3': 'http://wordpress.org/export/1.2/excerpt/'}) is not None else ""
+        encoded_excerpt = item.find('ns3:encoded', {'ns3': 'http://wordpress.org/export/1.2/excerpt/'})
 
-        # Combine all the content into a single string
-        combined_content = f"Post ID: {post_id}\nLink: {link}\nPublication Date: {pub_date}\nUpdated Date: {post_modified}\n\nContent:\n{encoded}\n\nExcerpt:\n{encoded_excerpt}"
+        # Check if the <ns3:encoded> tag exists and has text content
+        if encoded_excerpt is not None and encoded_excerpt.text is not None:
+            # Remove the <excerpt:encoded> and </excerpt:encoded> tags from the content
+            content = encoded_excerpt.text.replace('<excerpt:encoded>', '').replace('</excerpt:encoded>', '')
+        else:
+            content = ""
 
         # Write the extracted data to the sheet
         sheet.cell(row=row_num, column=1, value=title)
-        sheet.cell(row=row_num, column=2, value=combined_content)
+        sheet.cell(row=row_num, column=2, value=content)
 
         # Increment the row counter
         row_num += 1
